@@ -181,8 +181,8 @@ if __name__ == '__main__':
     ################################################################
     parser.add_argument(
         '--device',
-        type=int,
-        default=1)
+        type=str,
+        default='0')
 
     parser.add_argument(
         '--random_seed',
@@ -247,7 +247,14 @@ if __name__ == '__main__':
     set_random_seed(args.random_seed)
 
     use_cuda = torch.cuda.is_available()
-    DEVICE = torch.device(f'cuda:{args.device}' if use_cuda else 'cpu')
+    multi_gpu = args.device == 'all'
+    if use_cuda:
+        if multi_gpu:
+            DEVICE = torch.device('cuda') # we don't specify a device if we're using all available devices in data parallel
+        else:
+            DEVICE = torch.device('cuda:'+args.device) 
+    else:
+        DEVICE = torch.device('cpu')
 
     TASK_DIR = f'path/task{args.task}'
 
@@ -271,6 +278,11 @@ if __name__ == '__main__':
         test = ISICChallengeSet(f'{TASK_DIR}/final_holdout.txt', task=args.task)
 
     M = len(bound)
+
+    batch_size = args.batch_size
+
+    if multi_gpu:
+        batch_size = batch_size * torch.cuda.device_count() # batch size for the loader is then divided amongst available devices
 
     LOADER_ARGS = {"batch_size" : args.batch_size,
         "num_workers" : args.num_workers,
@@ -318,6 +330,10 @@ if __name__ == '__main__':
     else:
         raise Exception(f'model {args.model} not implemented.')
 
+    # multi GPU setup wraps models in DataParallel
+    if multi_gpu:
+        Model = torch.nn.DataParallel(Model)
+    
     # all models starts from the same init. point
     prior = Model().to(DEVICE)
     print(prior)
@@ -342,6 +358,8 @@ if __name__ == '__main__':
     # ProbModel requires explicitly passing device
     # for internal computations (in addition to casting)
     RHO_PRIOR = log(exp(args.sigma_prior) - 1.0)
+    if multi_gpu:
+        ProbModel = torch.nn.DataParallel(ProbModel)
     posterior = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
         device=DEVICE, init_net=prior, keep_batchnorm=args.freeze_batchnorm).to(DEVICE)
 
