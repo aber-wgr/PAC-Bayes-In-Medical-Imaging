@@ -25,8 +25,8 @@ def isprob(module):
     check = check or isinstance(module, ProbConvTranspose2d)
     return check
 
-def compute_kl(model):
-    kl_div = torch.zeros(1, requires_grad=True).to(model.device)
+def compute_kl(model,device='cpu'):
+    kl_div = torch.zeros(1, requires_grad=True).to(device)
     for m in model.modules():
         # find top level prob modules and sum.
         # multivariate normal with dialog cov

@@ -56,7 +56,7 @@ class Classic(Trainer):
 class PacBayes(Trainer):
 
     def __init__(self, loss_fn, m, delta, bound='variational', 
-        kl_dampening=1, metrics={'01' : compute_01}, wandb=None):
+        kl_dampening=1, metrics={'01' : compute_01}, wandb=None,device='cpu'):
         """
         parameter notes:
         m is the number of data point samples (sort of)
@@ -86,6 +86,7 @@ class PacBayes(Trainer):
         self.kl_dampening = kl_dampening
         self.metric_fns = metrics
         self.wandb = wandb
+        self.device = device
         self.reset()
     
     def reset(self):
@@ -96,7 +97,7 @@ class PacBayes(Trainer):
         self.metrics = {k : 0. for k,_ in self.metric_fns.items()}
 
     def __call__(self, model, x, y):
-        kl_div = compute_kl(model)
+        kl_div = compute_kl(model,device=self.device)
         dampened_kl_div = kl_div * self.kl_dampening
         yhat = model(x, sample=True)
         loss = self.loss_fn(yhat, y)

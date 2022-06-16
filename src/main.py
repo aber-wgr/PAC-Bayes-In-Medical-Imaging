@@ -379,7 +379,7 @@ if __name__ == '__main__':
     else:
         trainer = PacBayesTrainer(Loss(), M, args.delta,
             bound=args.train_bound, metrics=METRICS, 
-            kl_dampening=args.kl_dampening,wandb=wandb)
+            kl_dampening=args.kl_dampening,wandb=wandb,device=DEVICE)
 
     print('Training model...')
     if args.use_coupling:
