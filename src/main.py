@@ -398,7 +398,7 @@ if __name__ == '__main__':
         metric_tester = PACBayes(estimator=args.estimator,
             ensemble_samples=args.ensemble_samples,wandb=wandb, **TESTER_ARGS)
         bound_tester = PACBayesBound(args.mc_samples, args.delta, seed=args.random_seed,
-            bound='mauer', wandb=wandb, **TESTER_ARGS)
+            bound='mauer', wandb=wandb, **TESTER_ARGS,device=DEVICE)
         COMPUTE_ARGS = (model,)
         BOUND_NAME = 'PAC Bayes (Mauer)'
 

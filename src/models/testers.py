@@ -86,7 +86,7 @@ class PACBayes:
 class PACBayesBound:
 
     def __init__(self, mc_samples, delta, bound='mauer', name='01', 
-        seed=None, metric=compute_01, invert=False, wandb=None):
+        seed=None, metric=compute_01, invert=False, wandb=None, device='cpu'):
         """
         parameter notes:
         mc_samples is the number of hypothesis samples to use
@@ -103,6 +103,7 @@ class PACBayesBound:
         self.kl_div = None
         self.seed = seed
         self.wandb = wandb
+        self.device = device
         self.set_new_bound_fn(bound)
     
     def set_new_bound_fn(self, bound):
@@ -131,7 +132,7 @@ class PACBayesBound:
         self.counter += y.size(0)
     
     def compute(self, model):
-        kl_div = compute_kl(model)
+        kl_div = compute_kl(model,self.device)
         self.kl_div = kl_div.item()
         avg_metric = self.metric / self.counter
         if self.invert:
