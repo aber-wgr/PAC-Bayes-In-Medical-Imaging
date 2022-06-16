@@ -7,15 +7,12 @@ from .models.resnet import resnet18, resnet34
 from .models.prob_resnet import prob_resnet18, prob_resnet34
 from .data.datasets import ISICChallengeSet
 from .models.unet import UNet, ProbUNet, LightWeight, ProbLightWeight
-from .models.cnn import CNNet4l, ProbCNNet4l, CNNet9l, ProbCNNet9l, \
-    CNNet13l, ProbCNNet13l
+from .models.cnn import CNNet4l, ProbCNNet4l, CNNet9l, ProbCNNet9l, CNNet13l, ProbCNNet13l
 from .models.trainers import Classic as ClassicTrainer
 from .models.trainers import PacBayes as PacBayesTrainer
-from .models.testers import PACBayes, PACBayesBound, \
-    ClassicBound, Classic
+from .models.testers import PACBayes, PACBayesBound, ClassicBound, Classic
 from .models.utils import train_loop, test_loop, coupled_train_loop
-from .utils.utils import DSCLoss, BoundedNLLLoss, set_random_seed, \
-    compute_01, compute_dsc
+from .utils.utils import DSCLoss, BoundedNLLLoss, set_random_seed, compute_01, compute_dsc
 
 if __name__ == '__main__':
 
@@ -330,12 +327,14 @@ if __name__ == '__main__':
     else:
         raise Exception(f'model {args.model} not implemented.')
 
+    Model = Model()
+
     # multi GPU setup wraps models in DataParallel
     if multi_gpu:
         Model = torch.nn.DataParallel(Model)
     
     # all models starts from the same init. point
-    prior = Model().to(DEVICE)
+    prior = Model.to(DEVICE)
     print(prior)
 
     if args.use_prefix:
@@ -358,10 +357,11 @@ if __name__ == '__main__':
     # ProbModel requires explicitly passing device
     # for internal computations (in addition to casting)
     RHO_PRIOR = log(exp(args.sigma_prior) - 1.0)
+    ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
+        device=DEVICE, init_net=prior, keep_batchnorm=args.freeze_batchnorm)
     if multi_gpu:
         ProbModel = torch.nn.DataParallel(ProbModel)
-    posterior = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
-        device=DEVICE, init_net=prior, keep_batchnorm=args.freeze_batchnorm).to(DEVICE)
+    posterior = ProbModel.to(DEVICE)
 
     if args.baseline:
         # just another check
