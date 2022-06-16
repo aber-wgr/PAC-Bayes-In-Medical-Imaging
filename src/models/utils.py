@@ -27,13 +27,14 @@ def isprob(module):
 
 def compute_kl(model,device='cpu'):
     kl_div = torch.zeros(1, requires_grad=True).to(device)
-    for m in model.modules():
-        # find top level prob modules and sum.
-        # multivariate normal with dialog cov
-        # is a product distr of i.i.d uni normals
-        # so we can just sum the kl divergences
-        if isprob(m):
-            kl_div += m.kl_div
+    with torch.no_grad():
+        for m in model.modules():
+            # find top level prob modules and sum.
+            # multivariate normal with dialog cov
+            # is a product distr of i.i.d uni normals
+            # so we can just sum the kl divergences
+            if isprob(m):
+                kl_div += m.kl_div
     return kl_div
 
 def reset_prior(model, init_net):
