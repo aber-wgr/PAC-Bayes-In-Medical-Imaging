@@ -359,7 +359,7 @@ if __name__ == '__main__':
     RHO_PRIOR = log(exp(args.sigma_prior) - 1.0)
     if multi_gpu:
         ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
-        device=DEVICE, init_net=prior.model, keep_batchnorm=args.freeze_batchnorm)
+        device=DEVICE, init_net=prior.module, keep_batchnorm=args.freeze_batchnorm)
         ProbModel = torch.nn.DataParallel(ProbModel)
     else:
         ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
