@@ -357,10 +357,13 @@ if __name__ == '__main__':
     # ProbModel requires explicitly passing device
     # for internal computations (in addition to casting)
     RHO_PRIOR = log(exp(args.sigma_prior) - 1.0)
-    ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
-        device=DEVICE, init_net=prior, keep_batchnorm=args.freeze_batchnorm)
     if multi_gpu:
+        ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
+        device=DEVICE, init_net=prior.model, keep_batchnorm=args.freeze_batchnorm)
         ProbModel = torch.nn.DataParallel(ProbModel)
+    else:
+        ProbModel = ProbModel(RHO_PRIOR, prior_dist=args.prior_dist,
+        device=DEVICE, init_net=prior, keep_batchnorm=args.freeze_batchnorm)
     posterior = ProbModel.to(DEVICE)
 
     if args.baseline:
