@@ -10,6 +10,9 @@ def freeze_batchnorm(model):
     From the following PyTorch discussion
     https://discuss.pytorch.org/t/how-to-freeze-bn-layers-while-training-the-rest-of-network-mean-and-var-wont-freeze/89736/11
     """
+    if(isinstance(model,torch.nn.DataParallel)):
+        model = model.module
+
     for module in model.modules():
         # print(module)
         if isinstance(module, torch.nn.BatchNorm2d):
@@ -27,6 +30,8 @@ def isprob(module):
 
 def compute_kl(model,device='cpu'):
     kl_div = torch.zeros(1, requires_grad=True).to(device)
+    if(isinstance(model,torch.nn.DataParallel)):
+        model = model.module
     with torch.no_grad():
         for m in model.modules():
             # find top level prob modules and sum.
@@ -38,6 +43,8 @@ def compute_kl(model,device='cpu'):
     return kl_div
 
 def reset_prior(model, init_net):
+    if(isinstance(model,torch.nn.DataParallel)):
+        model = model.module
     for k1, m1 in model.named_modules():
         # find bottom level prob modules
         if isprob(m1):
